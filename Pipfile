@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 pygsheets = "*"
-pandas = "*"
+pandas = "==2.0.3"
 sqlalchemy = "~=1.4"
 sqlsorcery = {extras = ["mssql"], version = "*"}
 job-notifications = "*"

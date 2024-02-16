@@ -1,17 +1,21 @@
-from utils.school_dataclass import SchoolDataClass
-from utils.school_dataclass import create_dataclass
+
+from etl_script import refresh_intervention_monitors
 from utils.school_meta_data import SCHOOL_META_DATA
-from typing import List
+from utils.school_dataclass import create_dataclass
 
-def get_schools() -> List[SchoolDataClass]:
-    """Fetches and filters list of SchoolDataClass objects
 
-    Func will fetch based on whether --schools or --exclude arguments are present
-    """
-    school_dataclasses = [create_dataclass(x) for x in SCHOOL_META_DATA if x['status'] == 'ACTIVE']
-    if args.schools:
-        return [school for school in school_dataclasses if school.short_name.upper() in args.schools]
-    elif args.exclude:
-        return [school for school in school_dataclasses if school.short_name.upper() not in args.exclude]
+
+
+def main():
+    schools = [create_dataclass(x) for x in SCHOOL_META_DATA if x['status'] == 'ACTIVE']
+    
+    if not schools:
+        print("No schools selected for job")
     else:
-        return school_dataclasses
+        refresh_intervention_monitors(schools)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print("error running main")
