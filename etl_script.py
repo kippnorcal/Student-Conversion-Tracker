@@ -53,6 +53,7 @@ def _rename_dw_df_columns(dw_df: DataFrame) -> None:
             , "Last_Status_Change": "Last Updated"
             , "Days_in_Current_Status": "Days in Current Status"
             , "Age_of_Reg_Pipeline": "Age of Reg Pipeline"
+            , 'other_app': 'Other KIPP Application(s)?'
         },
         inplace=True
     )
