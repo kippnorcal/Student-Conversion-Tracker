@@ -1,3 +1,4 @@
+import logging
 from typing import Union, List
 
 from pandas import DataFrame, merge
@@ -53,6 +54,7 @@ def _rename_dw_df_columns(dw_df: DataFrame) -> None:
             , "Last_Status_Change": "Last Updated"
             , "Days_in_Current_Status": "Days in Current Status"
             , "Age_of_Reg_Pipeline": "Age of Reg Pipeline"
+            , 'other_app': 'Other KIPP Application(s)?'
         },
         inplace=True
     )
@@ -64,6 +66,7 @@ def _intervention_monitor_ids_to_df(wks: Worksheet) -> DataFrame:
 def _get_first_empty_cell(df: DataFrame) -> str:
     # Index starts at 1 + 2 header rows = 3
     row_number = len(df.index) + 5
+    logging.info(f'Marking cell A{row_number} as first blank cell.')
     return f'A{row_number}'
 
 ##(3) Joining GS and DW data
@@ -85,7 +88,9 @@ def _truncate_and_reload_monitor(df: DataFrame, wks: Worksheet) -> None:
     try:
         wks.set_dataframe(df, "A5", copy_head=False)
     except Exception as e:
-        print("Error Here2")
+        logging.info(f"Error raised: {e}")
+        logging.info(f"Exception type {type(e)}")
+        raise WorkSheetError
 
 def _get_students_to_append(dw_df: DataFrame, wk_df: DataFrame) -> DataFrame:
     result = merge(
@@ -106,9 +111,9 @@ def _check_for_new_students_and_append(school: SchoolDataClass) -> None:
     if not new_students.empty:
         _append_new_students_to_intervention_monitor(new_students,
                                                      school.google_sheets_obj, school.first_empty_cell)
-        print(f'Appended {len(new_students)} onto {school.school_name} Student Conversion Tracker')
+        logging.info(f"Inserted {len(new_students)} new students onto the tracker")
         
-def _refresh_intervention_monitor_data(school: SchoolDataClass) -> None:
+def _refresh_conversion_tracker_data(school: SchoolDataClass) -> None:
     """Refreshes student records in worksheet
 
     If data_refresh_df is empty, then there are no records in worksheet and is assumed to be new.
@@ -116,7 +121,7 @@ def _refresh_intervention_monitor_data(school: SchoolDataClass) -> None:
     data_refresh_df = _get_data_refresh_from_warehouse(school.google_sheets_df, school.data_warehouse_df)
     if not data_refresh_df.empty:
         _truncate_and_reload_monitor(data_refresh_df, school.google_sheets_obj)
-        print(f'Refreshing {len(data_refresh_df)} student records on {school.school_name} Student Conversion Tracker')
+        logging.info(f'Refreshing {len(data_refresh_df)} student records on {school.school_name} Conversion Tracker')
     else:
         #_protect_ids(school.google_sheets_obj)
         pass
@@ -126,7 +131,7 @@ def _refresh_intervention_monitor_data(school: SchoolDataClass) -> None:
 
 
 
-def _sort_intervention_monitor(school: SchoolDataClass) -> None:
+def _sort_conversion_tracker(school: SchoolDataClass) -> None:
     """Sort intervention monitor last name then by  enrollment status with un-enrolled students at bottom"""
     sheet_dim = (school.google_sheets_obj.rows, school.google_sheets_obj.cols)
     school.google_sheets_obj.sort_range('A5', sheet_dim, basecolumnindex=1, sortorder='ASCENDING')
@@ -134,20 +139,21 @@ def _sort_intervention_monitor(school: SchoolDataClass) -> None:
     school.google_sheets_obj.sort_range('A5', sheet_dim, basecolumnindex=7, sortorder='ASCENDING')
 
 
-def refresh_intervention_monitors(schools: List[SchoolDataClass]) -> None:
+def refresh_conversion_trackers(schools: List[SchoolDataClass]) -> None:
     dw_df = _data_warehouse_query()
     dw_df = _format_dw_query(dw_df)
 
     for school in schools:
-        print(f'\n--- PROCESSING {school.school_name} ---')
+        logging.info(f'\n--- PROCESSING {school.school_name} ---')
 
         school.google_sheets_obj = _connect_to_gsheet(school.sheets_key, "Waitlist + Registration Tracker")
         print(f"Connected to {school.school_name}'s google sheet")
+        logging.info(f"\nConnected to {school.school_name}'s google sheet")
         if school.google_sheets_obj is not None:
             school.google_sheets_df = _intervention_monitor_ids_to_df(school.google_sheets_obj)
             school.first_empty_cell = _get_first_empty_cell(school.google_sheets_df)
             school.data_warehouse_df = dw_df.loc[dw_df["ID"].isin([school.school_id])]
 
-            _refresh_intervention_monitor_data(school)
+            _refresh_conversion_tracker_data(school)
             _check_for_new_students_and_append(school)
-            _sort_intervention_monitor(school)
+            _sort_conversion_tracker(school)

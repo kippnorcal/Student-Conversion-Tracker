@@ -6,6 +6,7 @@ SELECT
     , StudentAddress_Street_1 + ', ' + StudentAddress_City + ', ' + StudentAddress_State AS StudentAddress
     , Current_School
     , IIF(Priorities LIKE '%Sibling Attending%','Y',NULL) AS Sibling
+    , ' ' AS other_app
     , Grade_Applying_To
     , Application_Status
     , Waitlist_Number
