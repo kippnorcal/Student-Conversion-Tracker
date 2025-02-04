@@ -17,24 +17,20 @@ https://github.com/kippnorcal/Student-Conversion-Tracker.git
 ### Create .env file with project secrets
 
 ```
-# Database connection
-DB_SERVER=
-DB=
-DB_USER=
-DB_PWD=
-DB_SCHEMA=
-
-# Google Developer Service Account
+# Google Service Account Credentials
 SERVICE_ACCOUNT_CREDENTIAL_FILE=
+
+# Google Big Query Info
+GOOGLE_APPLICATION_CREDENTIALS=
+GBQ_PROJECT=
+GBQ_DATASET=
 
 # Mailgun variables
 MG_API_KEY=
 MG_API_URL=
 MG_DOMAIN=
-
-# Email Notification Variables
-SENDER_EMAIL=
-RECIPIENT_EMAIL=
+FROM_ADDRESS=
+TO_ADDRESS=
 ```
 
 ### school_meta_data.py
