@@ -105,7 +105,7 @@ venv.bak/
 
 # project files
 *.json
-utils/school_meta_data.py
+school_meta_data.py
 
 # Pycharm settings dir
 .idea

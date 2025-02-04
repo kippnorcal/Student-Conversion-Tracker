@@ -5,7 +5,7 @@ ETL pipeline that connects data warehouse and GoogleSheets for Student Conversio
 ## Getting Started
 
 ### Dependencies:
-* Python3.8
+* Python3
 * [Pipenv](https://pipenv.readthedocs.io/en/latest/)
 * [Docker](https://www.docker.com/)
 
@@ -25,7 +25,7 @@ DB_PWD=
 DB_SCHEMA=
 
 # Google Developer Service Account
-ACCOUNT_EMAIL=
+SERVICE_ACCOUNT_CREDENTIAL_FILE=
 
 # Mailgun variables
 MG_API_KEY=
@@ -37,16 +37,26 @@ SENDER_EMAIL=
 RECIPIENT_EMAIL=
 ```
 
-### Create school_meta_data.py
-A list of dictionaries that represent each school. List needs to be named SCHOOL_META_DATA. Each dictionary needs to contain the following key, value pairs:
+### school_meta_data.py
+Create a file at the repo's root called `school_meta_data.py`. In this file, create a list named `SCHOOL_META_DATA`. This fill this list with dictionaries that represent data of each school. Each dictionary needs to contain the following keys:
+```python
+SCHOOL_META_DATA = [
+    {
+        "school_name": "Some School", # Name of school for logging purposes
+        "school_id": 1, # School ID of record
+        "sheets_key": "ABCD123", # Google Sheets key for school's attendance tracking worksheet
+        "status": "ACTIVE" # For beginning of school year as schools come online. Unless the value is 'ACTIVE', school will be filtered out.
+    }
+]
 ```
+
 school_name = String: School name from data warehouse for use in much of the Python code
 school_id = Int: School ID of record
 short_name = String: Used for runtime arguments. Do not use spaces in names.
 sheets_key = String: Google Sheets key for school's attendance tracking worksheet
 status = String: For beginning of school year as schools come online. Unless the value is 'ACTIVE', school will be 
     filtered out.
-```
+
 
 The sheets_key is the same keys used for the as attendance_response_letters job.
 
