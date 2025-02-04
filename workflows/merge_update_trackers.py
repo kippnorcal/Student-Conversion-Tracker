@@ -101,8 +101,13 @@ def _sort_conversion_tracker(school: SchoolDataClass) -> None:
     school.google_sheets_obj.sort_range(START_CELL, sheet_dim, basecolumnindex=7, sortorder="ASCENDING")
 
 
-def refresh_conversion_trackers(schools: List[SchoolDataClass], tracker_data: pd.DataFrame) -> None:
-
+def run_merge_and_update(schools: List[SchoolDataClass], tracker_data: pd.DataFrame) -> None:
+    """
+    This module will take a fresh dataset from the data warehouse and update Google Sheet trackers in two steps:
+        1) Identify records that exist in both the sheet and the new dataset and update the records in the sheet
+        2) Identify records that are in the dataset but not in the sheet and append those records to the sheet
+    This was how the automation ran originally until 2/2025.
+    """
     for school in schools:
         logging.info(f'\n--- PROCESSING {school.school_name} ---')
 
