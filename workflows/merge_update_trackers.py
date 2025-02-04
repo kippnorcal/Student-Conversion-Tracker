@@ -4,28 +4,21 @@ from typing import Union, List
 
 import pandas as pd
 from pandas import DataFrame, merge
-from pygsheets import  authorize, Worksheet
+from pygsheets import Worksheet
 
 from models.school_dataclass import SchoolDataClass
 
 # These constants are data points that the script is dependent on and are tied to how the Google Sheets are set up
 ID_FIELD = "App ID"
 DATA_SCHOOL_ID_FIELD = "ID"
-SHEET_NAME = "Waitlist + Registration Tracker"
 START_CELL = "A5"
 START_CELL_WITH_HEADERS = "A4"
 SHEET_ROW_OFFSET = 5 # Number of rows until where the data begins (including headers)
 
-def _connect_to_gsheet(spreadsheet_id: str, sheet_name: str) -> Union[Worksheet, None]:
-    gsheet = None
-    try:
-        client = authorize(service_file=os.getenv("SERVICE_ACCOUNT_CREDENTIAL_FILE"))
-        sheet = client.open_by_key(spreadsheet_id)
-        gsheet = sheet.worksheet_by_title(sheet_name)
-    except Exception as e:
-        logging.info(f"Error raised: {e}")
-        logging.info(f"Exception type {type(e)}")
-    return gsheet
+
+def _id_field_conversion(dw_df: pd.DataFrame) -> None:
+    """Converting StudentID data type to enable merging with sheets IDs"""
+    dw_df["Application_ID"] = dw_df["Application_ID"].astype("Int64", copy=False)
 
 
 def _tracker_student_ids_to_df(wks: Worksheet) -> DataFrame:
@@ -108,12 +101,12 @@ def run_merge_and_update(schools: List[SchoolDataClass], tracker_data: pd.DataFr
         2) Identify records that are in the dataset but not in the sheet and append those records to the sheet
     This was how the automation ran originally until 2/2025.
     """
+
+    _id_field_conversion(tracker_data)
+
     for school in schools:
         logging.info(f'\n--- PROCESSING {school.school_name} ---')
 
-        school.google_sheets_obj = _connect_to_gsheet(school.sheets_key, SHEET_NAME)
-
-        logging.info(f"\nConnected to {school.school_name}'s google sheet")
         if school.google_sheets_obj is not None:
             school.google_sheets_df = _tracker_student_ids_to_df(school.google_sheets_obj)
             school.first_empty_cell = _get_first_empty_cell(school.google_sheets_df)

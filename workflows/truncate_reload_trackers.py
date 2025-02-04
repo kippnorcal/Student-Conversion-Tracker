@@ -18,7 +18,7 @@ def _truncate_and_reload_tracker(df: DataFrame, wks: Worksheet) -> None:
         logging.info(f"Exception type {type(e)}")
 
 
-def run_truncate_and_load(schools: List[SchoolDataClass], tracker_data: DataFrame) -> None:
+def run_truncate_and_reload(schools: List[SchoolDataClass], tracker_data: DataFrame) -> None:
     for school in schools:
         logging.info(f'\n--- PROCESSING {school.school_name} ---')
 
