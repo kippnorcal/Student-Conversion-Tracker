@@ -23,7 +23,7 @@ class SchoolDataClass:
     first_empty_cell = None
     google_sheets_df: DataFrame = None
     data_warehouse_df: DataFrame = None
-    status: str = None
+    active: str = None
 
     def __str__(self):
         return f'{self.school_name} - {self.sheets_key}'
