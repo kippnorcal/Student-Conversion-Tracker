@@ -22,7 +22,7 @@ from workflows.truncate_reload_trackers import run_truncate_and_reload
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--school-year",
+    "--merge-update",
     help="Runs the merge and update tracker workflow; If not provided, the truncate and reload tracker workflow is run",
     dest="merge_update",
     action="store_true"
@@ -48,40 +48,46 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 args = parser.parse_args()
-SHEET_NAME = "Waitlist + Registration Tracker"
+SHEET_NAME = "[DSIM DQ Check] New Students to Add"
 
 # Create notifications object
-notifications = create_notifications("Student Conversion Tracker", "mailgun")
+notifications = create_notifications("Student Conversion Tracker", "mailgun", logs="app.log")
 
 def get_data_snapshot():
     gbq = BigQueryClient()
-    df = gbq.get_table_as_df("model_name", dataset="norcal_analytics")
+    df = gbq.get_table_as_df("rpt_enrollment__enrollment_management_tool", dataset="norcal_analytics")
     return df
 
 
 def _prep_dataset(df: pd.DataFrame) -> pd.DataFrame:
     _rename_dw_df_columns(df)
-    df.fillna('', inplace=True)
+    df["Last Updated"] = df["Last Updated"].dt.strftime("%m/%d/%Y")
+    obj_cols = df.select_dtypes(object).columns
+    df[obj_cols] = df[obj_cols].fillna("")
+    df = df.astype(str)
+    df = df.fillna('')
+    df["school_id"] = df["school_id"].astype(int)
     return df
 
 
 def _rename_dw_df_columns(dw_df: pd.DataFrame) -> None:
     """Renaming columns from DW to match column names on spreadsheet"""
     dw_df.rename(
-        columns={
-            "Application_ID": "App ID"
-            , "Student_FullName": "Student Full Name"
-            , "SIS_Student_ID": "PowerSchool ID"
-            , "Student_Birth_Date": "DOB"
-            , "StudentAddress": "Home Address"
-            , "Current_School": "Previous School"
-            , "Current_Grade": "Grade"
-            , "Application_Status": "Current Status"
-            , "Waitlist_Number": "Current WL #"
-            , "Last_Status_Change": "Last Updated"
-            , "Days_in_Current_Status": "Days in Current Status"
-            , "Age_of_Reg_Pipeline": "Age of Reg Pipeline"
-            , 'other_app': 'Other KIPP Application(s)?'
+        columns = {
+            "app_id": "App ID",
+            "student_full_name": "Student Full Name",
+            "powerschool_id": "PowerSchool ID",
+            "dob": "DOB",
+            "home_address": "Home Address",
+            "previous_school": "Previous School",
+            "sibling": "Sibling",
+            "other_kipp_applications": "Other KIPP Application(s)?",
+            "grade": "Grade",
+            "current_status": "Current Status",
+            "current_waitlist_number": "Current WL #",
+            "last_updated": "Last Updated",
+            "days_in_current_status": "Days in Current Status",
+            "school_id": "school_id", # This id is for filtering df; will get dropped before adding to sheet
         },
         inplace=True
     )
