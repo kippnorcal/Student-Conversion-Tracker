@@ -102,8 +102,6 @@ def _connect_to_gsheet(school: SchoolDataClass, sheet_name: str) -> Union[Worksh
 
 def main():
     schools = [create_dataclass(x) for x in SCHOOL_META_DATA if x["active"] is True]
-    if args.dbt_refresh:
-        logger.info("refresh-dbt no implemented")
     tracker_dataset = get_data_snapshot()
     tracker_dataset = _prep_dataset(tracker_dataset)
 
