@@ -27,12 +27,6 @@ parser.add_argument(
     dest="merge_update",
     action="store_true"
 )
-parser.add_argument(
-    "--dbt-refresh",
-    help="Runs dbt refresh job",
-    dest="dbt_refresh",
-    action="store_true"
-)
 
 DEBUG = int(os.getenv("DEBUG", default=0))
 
